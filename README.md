@@ -229,6 +229,48 @@ You should now be able to access Kibana dashboard via the server fully qualified
 
 
 
+## C. Installing Logstash
+
+Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to your favorite "stash."
+
+First, is to install a Java version 8. This will get you installed the latest java version
+
+`sudo apt install openjdk-8-jdk`
+
+check java version
+
+`java -version`
+
+`OpenJDK Runtime Environment (build 1.8.0_222-8u222-b10-1ubuntu1~18.04.1-b10)`
+
+######please be aware that you might get newer java build version than this
+
+Installing Logstash
+
+`sudo apt install logstash`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
