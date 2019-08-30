@@ -243,21 +243,75 @@ check java version
 
 `OpenJDK Runtime Environment (build 1.8.0_222-8u222-b10-1ubuntu1~18.04.1-b10)`
 
-######please be aware that you might get newer java build version than this
+###### please be aware that you might get newer java build version than this
 
 Installing Logstash
 
 `sudo apt install logstash`
 
+###### Logstash plugin
+
+```
+input {
+  beats {
+    port => 5044
+  }
+}
+```
+
+###### Logstash Filter
+
+For demonstration purposes, we are going to configure beats to collect SSH authentication events from Ubuntu/CentOS systems. Hence, we are going to create a filter to process such kind of events as shown below
+
+```
+May  1 13:15:23 elk sshd[1387]: Failed password for testuser from 192.168.0.102 port 60004 ssh2
+May  1 13:08:30 elk sshd[1338]: Accepted password for testuser from 192.168.0.102 port 59958 ssh2
+```
+
+create `.conf` file
+
+`vim /etc/logstash/conf.d/ssh-auth-filter.conf`
+
+```
+filter {
+  grok {
+    match => { "message" => "%{SYSLOGTIMESTAMP:timestamp}\s+%{IPORHOST:dst_host}\s+%{WORD:syslog_program}\[\d+\]:\s+(?<status>\w+\s+password)\s+for\s+%{USER:auth_user}\s+from\s+%{SYSLOGHOST:src_host}.*" }
+    add_field => { "activity" => "SSH Logins" }
+    add_tag => "linux_auth"
+    }
+}
+```
+
+###### Logstash Output
+
+`vim /etc/logstash/conf.d/elasticsearch-output.conf`
+
+```
+output {
+   elasticsearch {
+     hosts => ["localhost:9200"]
+     manage_template => false
+     index => "ssh_auth-%{+YYYY.MM}"
+ }
+ stdout { codec => rubydebug }
+}
+```
+
+testing Logstash configuration
+
+`sudo -u logstash /usr/share/logstash/bin/logstash --path.settings /etc/logstash -t`
+
+this will take time. After it says `Config Validation Result: OK. Exiting Logstash`, then you are good to go
+
+enable Logstash to run at boot
+
+`systemctl start logstash.service`
+
+`systemctl enable logstash.service`
 
 
 
-
-
-
-
-
-
+## D. Installing Filebeat
 
 
 
