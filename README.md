@@ -10,6 +10,8 @@
 
 5. I am using debian 18.04 LTS
 
+6. your machine must have atleast 2Gb of RAM
+
 
 
 For this guide to work, all the steps are must in the correct (suggested) order;
