@@ -47,9 +47,11 @@ Install Elasticsearch 7.0.0 on Ubuntu 18.04/Debian 9.8
 
 Note that Elasticsearch includes a bundled version of OpenJDK from the JDK maintainers
 
-`apt update
+```
+apt update
 apt-get install apt-transport-https
-apt install elasticsearch`
+apt install elasticsearch
+```
 
 If everything goes well, you can find the Elasticsearch configuration file as **/etc/elasticsearch/elasticsearch.yml.**
 
