@@ -331,10 +331,179 @@ enable Logstash to run at boot
 
 ## D. Installing Filebeat
 
+Add Elastic Stack 7 APT Repository
 
+download and install the Elastic Stack Repo public signing key
 
+`wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -`
 
+Create the Elastic Stack 7 Apt repository.
 
+`echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-7.x.list`
+
+###### Install Filebeat 7.x
+
+```
+apt-get install apt-transport-https
+apt update
+apt install filebeat
+```
+
+By default, Filebeat area receiving logs from Elasticsearch. But in this configurations, I'll be using Filebeat to send to Logstash.
+Hence, we need to edit Filebeat configuration file
+
+`nano /etc/filebeat/filebeat.yml`
+
+comment all in the Elasticsearch section
+
+```
+#================================ Outputs =====================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+#-------------------------- Elasticsearch output ------------------------------
+# output.elasticsearch:
+  # Array of hosts to connect to.
+  # hosts: ["localhost:9200"]
+
+  # Optional protocol and basic auth credentials.
+  #protocol: "https"
+  #username: "elastic"
+  #password: "changeme"
+```
+
+uncomment Logstash output
+
+```
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+  # The Logstash hosts
+  hosts: ["192.168.0.101:5044"]
+  ```
+
+Then, enable Filebeat System Module. Logstash Filter was configured to parse system auth events. 
+System module collects and parses logs created by the system logging service of common Unix/Linux based distributions. This module is disabled by default.
+
+`filebeat modules enable system`
+
+To load the index template in Elasticsearch, first we need to test the live connection using `telnet`
+
+`telnet 192.168.0.101 9200`
+
+```
+Trying 192.168.0.101...
+Connected to 192.168.0.101.
+Escape character is '^]'.
+```
+
+Load the Index Template
+
+`filebeat setup --index-management -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["192.168.0.101:9200"]'`
+
+To verify Elasticsearch Data Reception, we need to perform successful and failed login on the system with Filebeat installed. After that login to Elastic Stack server and verify if Elasticsearch is receiving data
+
+`curl -X GET 192.168.0.101:9200/_cat/indices?v`
+
+you will get something like this
+
+```
+
+health status index                            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   filebeat-7.0.0-2019.05.01-000001 3vhNqUvLS6CTgJQlSkp1Lg   1   1          0            0       283b           283b
+green  open   .kibana_1                        w-vOaD46QGa7LldMAvJVtw   1   0          3            1       20kb           20kb
+yellow open   ssh_auth-2019.05                 TyZHEQx_SR2q05a8yCEU-A   1   1       5940            0      2.2mb          2.2mb
+green  open   .kibana_task_manager             XhZ5kmOMRzWvQ3VDEvoNRA   1   0          2            0     45.4kb         45.4kb
+```
+
+remember, the log file only created after a successfull/unsuccessfull login into kibana website
+
+our log file earlier was stored in `ssh_auth-2019.05`
+
+Check `ssh_auth-2019.05` index;
+
+`curl -X GET 192.168.0.101:9200/ssh_auth-*/_search?pretty`
+
+```
+{
+  "took" : 19044,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 10000,
+      "relation" : "gte"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "ssh_auth-2019.09",
+        "_type" : "_doc",
+        "_id" : "kqf_-WwB0cJPgHQw5Nad",
+        "_score" : 1.0,
+        "_source" : {
+          "service" : {
+            "type" : "system"
+          },
+          "log" : {
+            "offset" : 3660189,
+            "file" : {
+              "path" : "/var/log/syslog"
+            }
+          },
+          "message" : "Sep  4 01:57:17 maismukaserv logstash[22108]:     },",
+          "event" : {
+            "module" : "system",
+            "timezone" : "+00:00",
+            "dataset" : "system.syslog"
+          },
+          "ecs" : {
+            "version" : "1.0.1"
+          },
+          "fileset" : {
+            "name" : "syslog"
+          },
+          "input" : {
+            "type" : "log"
+          },
+          "host" : {
+            "os" : {
+              "codename" : "bionic",
+              "name" : "Ubuntu",
+              "version" : "18.04.3 LTS (Bionic Beaver)",
+              "kernel" : "4.15.0-58-generic",
+              "platform" : "ubuntu",
+              "family" : "debian"
+            },
+            "name" : "maismukaserv",
+            "id" : "5e6c595f5f7b460b94d1bb6f9b45b5c2",
+            "containerized" : false,
+            "architecture" : "x86_64",
+            "hostname" : "maismukaserv"
+          },
+          "cloud" : {
+            "region" : "sgp1",
+            "instance" : {
+              "id" : "157465293"
+            },
+            "provider" : "digitalocean"
+          },
+          "tags" : [
+            "beats_input_codec_plain_applied",
+            "_grokparsefailure"
+          ],
+          "@version" : "1",
+          "agent" : {
+            "hostname" : "maismukaserv",
+```
+
+the lists goes on...
+
+The Elasticsearch was configured successfully! Now to add the log index into Kibana
 
 
 
