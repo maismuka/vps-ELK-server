@@ -267,6 +267,8 @@ Installing Logstash
 
 ###### Logstash plugin
 
+create `nano /etc/logstash/conf.d/beats-input.conf`
+
 ```
 input {
   beats {
