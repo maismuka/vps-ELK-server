@@ -505,7 +505,7 @@ the lists goes on...
 
 The Elasticsearch was configured successfully! Now to add the log index into Kibana
 
-
+## Refer for my ELK and Nginx configuration (.yml) file. Noted that the server IP are not same as the tutorial
 
 
 
