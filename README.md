@@ -202,6 +202,20 @@ server {
 	}
 }
 ```
+
+please noted that you may have to change `server_name` and `resolver`. 
+
+you need to change configuration file `/etc/kibana/kibana.yml`
+
+`nano /etc/kibana/kibana.yml`
+
+uncomment and change the `elasticsearch.host:`
+
+```
+# The URLs of the Elasticsearch instances to use for all your queries.
+elasticsearch.hosts: ["http://192.168.0.101:9200"]
+```
+
 To configure Nginx User authentication, you need to create users and their password. These authentication details will be saved in the file, `/etc/nginx/kibana.users`
 
 Use openssl command to generate the authentication credentials as shown below. Remember replace `USERNAME` and `PASSWORD` to your liking
